@@ -11,7 +11,14 @@
       "Bash(git push *)",
       "Bash(git update-ref *)",
       "Bash(git rm *)",
-      "Bash(git -c user.email=\"alexandru.muresan99@gmail.com\" -c user.name=\"lxmuresan\" commit -m \"Initial commit: site scaffolding\" -q)"
+      "Bash(git -c user.email=\"alexandru.muresan99@gmail.com\" -c user.name=\"lxmuresan\" commit -m \"Initial commit: site scaffolding\" -q)",
+      "Bash(git -c user.email=\"alexandru.muresan99@gmail.com\" -c user.name=\"lxmuresan\" commit -m \"Add nsia photos\" -q)",
+      "Bash(xargs -I {} git add \"photos/whbw/{}\")",
+      "Bash(git -c user.email=\"alexandru.muresan99@gmail.com\" -c user.name=\"lxmuresan\" commit -m \"Add whbw photos \\(1/3\\)\" -q)",
+      "Bash(git -c user.email=\"alexandru.muresan99@gmail.com\" -c user.name=\"lxmuresan\" commit -m \"Add whbw photos \\(2/3\\)\" -q)",
+      "Bash(git -c user.email=\"alexandru.muresan99@gmail.com\" -c user.name=\"lxmuresan\" commit -m \"Add whbw photos \\(3/3\\) and remaining\" -q)",
+      "Bash(git -c user.email=\"alexandru.muresan99@gmail.com\" -c user.name=\"lxmuresan\" commit -m \"Fix vercel.json header source pattern\" -q)",
+      "Bash(git -c user.email=\"alexandru.muresan99@gmail.com\" -c user.name=\"lxmuresan\" commit -m \"Switch to scrollable masonry layout for home and collections\" -q)"
     ]
   }
 }

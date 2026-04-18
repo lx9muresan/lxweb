@@ -46,10 +46,10 @@ function PhotoTile({ photo, layout, drift, t, onClick, dim }) {
 
   const style = {
     position: 'absolute',
-    left: `${layout.x}%`,
-    top: `${layout.y}%`,
-    width: `${layout.w}%`,
-    height: `${layout.h}%`,
+    left: `${layout.x}px`,
+    top: `${layout.y}px`,
+    width: `${layout.w}px`,
+    height: `${layout.h}px`,
     transform: `rotate(${layout.rot}deg)`,
     transition: 'filter 500ms ease, opacity 500ms ease',
     filter: dim ? 'saturate(0.7) brightness(0.95)' : 'none',
@@ -88,8 +88,8 @@ function ClusterLabel({ label, visible }) {
       className="cluster-label"
       style={{
         position: 'absolute',
-        left: `${label.x}%`,
-        top: `${label.y}%`,
+        left: `${label.x}px`,
+        top: `${label.y}px`,
         transform: align === 'center' ? 'translate(-50%, 0)' : 'translate(0, 0)',
         opacity: visible ? 1 : 0,
         transition: 'opacity 600ms ease 200ms',
@@ -263,8 +263,9 @@ function App() {
   // Which layout to render based on displayView
   const isCollections = displayView === 'collections';
   const isAbout = displayView === 'about';
-  const layouts = isCollections ? collectionsLayout.items : homeLayout;
+  const layouts = isCollections ? collectionsLayout.items : homeLayout.items;
   const labels = isCollections ? collectionsLayout.labels : [];
+  const stageH = isAbout ? vp.vh : (isCollections ? collectionsLayout.stageH : homeLayout.stageH);
 
   return (
     <div className={`app ${isMobile ? 'is-mobile' : ''}`}>
@@ -297,6 +298,7 @@ function App() {
         style={{
           opacity: fading ? 0 : 1,
           transition: 'opacity 320ms ease',
+          height: `${stageH}px`,
         }}
       >
         {/* Home bio blurb — short teaser (desktop only; mobile gets it on about page) */}

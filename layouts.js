@@ -1,6 +1,5 @@
-// Layout engines — produce {x, y, w, h, rot} per photo
-// x, y, w, h in % of the stage dimensions. Rotation is ALWAYS 0 — straight.
-// Photos may be portrait, landscape, or square. Their native aspect is used.
+// Layout engines — produce {x, y, w, h, rot} per photo in PIXELS.
+// Also return stageH (the total pixel height of the stage) so the page can scroll.
 
 function makeRng(seed) {
   let a = seed >>> 0;
@@ -21,140 +20,54 @@ function shuffle(arr, rng) {
   return a;
 }
 
-// Convert a photo's native ratio (w/h) into stage-coordinate w% / h% where
-// w% is given and h% is derived.
-// In stage-% coords: (w% * stageW) / (h% * stageH) = ratio
-// => h% = w% / ratio * (stageW / stageH) = w% / ratio * stageAspect
-function aspectToStageH(wPct, ratio, stageAspect) {
-  return (wPct / ratio) * stageAspect;
+// Pick shortest column for masonry packing.
+function shortestCol(heights) {
+  let min = heights[0], idx = 0;
+  for (let i = 1; i < heights.length; i++) {
+    if (heights[i] < min) { min = heights[i]; idx = i; }
+  }
+  return idx;
 }
 
 // ------- SCATTERED (home) ---------
-// Place each photo inside a jittered grid cell. Tile size is chosen per-photo
-// so the tile fits in the cell regardless of orientation.
+// Masonry: N columns, variable-height tiles, page scrolls vertically.
 function scatteredLayout(photos, seed, opts = {}) {
   const { vw = 1600, vh = 1000 } = opts;
-  const stageAspect = vw / vh;
-  const mobile = stageAspect < 0.9;
-
+  const mobile = vw < 720;
   const rng = makeRng(seed);
 
-  const SAFE = mobile
-    ? { top: 22, bottom: 98, left: 3, right: 97 }
-    : { top: 11, bottom: 97, left: 4, right: 96 };
+  const cols = mobile ? 2 : 3;
+  const padX = mobile ? 16 : 40;
+  const gap  = mobile ? 10 : 24;
+  const topPad    = mobile ? 120 : 180;
+  const bottomPad = mobile ? 60  : 80;
 
-  // Bio band sits in the top-left — covers "lxmuresan" + tagline so no
-  // photos clip into the text.
-  const bio = mobile ? null : { x1: 0, y1: 0, x2: 22, y2: 10 };
+  const cellW = (vw - 2 * padX - gap * (cols - 1)) / cols;
 
-  const N = photos.length;
+  const colHeights = Array(cols).fill(topPad);
+  const shuffled = shuffle(photos, rng);
+  const out = new Array(photos.length);
 
-  const usableW = SAFE.right - SAFE.left;
-  const usableH = SAFE.bottom - SAFE.top;
-
-  // Grid: pick cols so that (cols * rows - blockedCells) ≈ N exactly,
-  // keeping cells roughly square in stage coords.
-  let cols, rows;
-  if (mobile) {
-    cols = 3;
-    rows = Math.ceil(N / cols);
-  } else {
-    // Try a range and pick the layout whose cell count fits N best while
-    // keeping cells reasonably square (cellW% * stageAspect ≈ cellH%).
-    let best = null;
-    for (let c = 6; c <= 11; c++) {
-      const cellW = usableW / c;
-      // Blocked cells in row 0: those whose x-range overlaps the bio band.
-      let blocked = 0;
-      if (bio) {
-        for (let gx = 0; gx < c; gx++) {
-          const cx1 = SAFE.left + gx * cellW;
-          const cx2 = cx1 + cellW;
-          if (cx1 < bio.x2 && cx2 > bio.x1) blocked++;
-        }
-      }
-      const r = Math.ceil((N + blocked) / c);
-      const cellH = usableH / r;
-      const aspect = (cellW * stageAspect) / cellH;
-      const score = Math.abs(Math.log(aspect));
-      const totalCells = c * r - blocked;
-      const slack = totalCells - N;
-      const total = score + slack * 0.06;
-      if (!best || total < best.total) best = { c, r, total };
-    }
-    cols = best.c;
-    rows = best.r;
+  for (const p of shuffled) {
+    const iCol = shortestCol(colHeights);
+    const tileW = cellW;
+    const tileH = tileW / p.ratio;
+    const x = padX + iCol * (cellW + gap);
+    const y = colHeights[iCol];
+    out[p.index] = { x, y, w: tileW, h: tileH, rot: 0, z: 0 };
+    colHeights[iCol] += tileH + gap;
   }
 
-  const cellW = usableW / cols;
-  const cellH = usableH / rows;
-
-  // Per-tile sizing: fit in cell with margin; keep native aspect.
-  const marginFrac = mobile ? 0.22 : 0.24;
-  const innerW = cellW * (1 - marginFrac);
-  const innerH = cellH * (1 - marginFrac);
-
-  // Build available cells: skip cells whose horizontal range overlaps the
-  // bio band (top row only). Bio sits above the grid vertically (SAFE.top
-  // is below bio.y2), so the only conflict is x-jitter pushing a row-0 tile
-  // upward/leftward into the bio.
-  const cellIndices = [];
-  for (let gy = 0; gy < rows; gy++) {
-    for (let gx = 0; gx < cols; gx++) {
-      const cx1 = SAFE.left + gx * cellW;
-      const cx2 = cx1 + cellW;
-      if (gy === 0 && bio && cx1 < bio.x2 && cx2 > bio.x1) continue;
-      cellIndices.push({
-        cx: cx1 + cellW / 2,
-        cy: SAFE.top + gy * cellH + cellH / 2,
-        row: gy,
-      });
-    }
-  }
-  const shuffled = shuffle(cellIndices, rng);
-  const takeCount = Math.min(N, shuffled.length);
-
-  const out = [];
-  for (let i = 0; i < N; i++) {
-    if (i >= takeCount) {
-      out.push({ x: -999, y: -999, w: 1, h: 1, rot: 0, z: i });
-      continue;
-    }
-    const slot = shuffled[i];
-    const ratio = photos[i].ratio; // w / h
-    // Fit tile to innerW / innerH by whichever is tighter.
-    // Candidate 1: w = innerW → h = aspectToStageH(innerW, ratio, stageAspect)
-    // Candidate 2: h = innerH → w = innerH * ratio / stageAspect
-    const h1 = aspectToStageH(innerW, ratio, stageAspect);
-    let tileW, tileH;
-    if (h1 <= innerH) {
-      tileW = innerW;
-      tileH = h1;
-    } else {
-      tileH = innerH;
-      tileW = (innerH * ratio) / stageAspect;
-    }
-    // Leftover room in the cell is split between jitter and margin.
-    const jitterX = Math.max(0, (cellW - tileW) / 2) * 0.6;
-    const jitterY = Math.max(0, (cellH - tileH) / 2) * 0.6;
-    const jx = (rng() - 0.5) * 2 * jitterX;
-    const jy = (rng() - 0.5) * 2 * jitterY;
-    const x = slot.cx - tileW / 2 + jx;
-    const y = slot.cy - tileH / 2 + jy;
-    out.push({ x, y, w: tileW, h: tileH, rot: 0, z: i });
-  }
-  return out;
+  const stageH = Math.max(vh, Math.max(...colHeights) + bottomPad);
+  return { items: out, stageH };
 }
 
 // ------- GROUPED (collections) --------
-// Per-collection cell with a label band and a row-based packing area.
-// Row packing: fit tiles into fixed-height rows, breaking to new row when
-// the current row would exceed the cell width. Prevents overlap by design.
+// Sections (one per collection) laid out in a 2-col (desktop) or 1-col (mobile)
+// meta-grid, each section using an inner 2-col masonry for its photos.
 function groupedLayout(photos, seed, opts = {}) {
   const { vw = 1600, vh = 1000 } = opts;
-  const stageAspect = vw / vh;
-  const mobile = stageAspect < 0.9;
-  const rng = makeRng(seed);
+  const mobile = vw < 720;
 
   const byCollection = {};
   for (const p of photos) {
@@ -162,108 +75,55 @@ function groupedLayout(photos, seed, opts = {}) {
   }
   const collectionOrder = window.COLLECTIONS.map(c => c.id);
 
-  const cols = mobile ? 1 : 2;
-  const rows = Math.ceil(collectionOrder.length / cols);
+  const sectionCols = mobile ? 1 : 2;
+  const padX        = mobile ? 16 : 40;
+  const gapX        = mobile ? 0  : 28;
+  const sectionGap  = mobile ? 40 : 56;
+  const topPad      = mobile ? 100 : 160;
+  const bottomPad   = mobile ? 60  : 80;
+  const labelH      = mobile ? 28  : 36;
+  const innerCols   = 2;
+  const innerGap    = mobile ? 8 : 14;
 
-  const M = mobile
-    ? { top: 8, bottom: 3, left: 4, right: 4, gutterX: 0, gutterY: 4 }
-    : { top: 13, bottom: 4, left: 5, right: 5, gutterX: 4, gutterY: 5 };
+  const sectionW = (vw - 2 * padX - gapX * (sectionCols - 1)) / sectionCols;
+  const tileW    = (sectionW - innerGap * (innerCols - 1)) / innerCols;
 
-  const innerW = 100 - M.left - M.right - M.gutterX * (cols - 1);
-  const innerH = 100 - M.top - M.bottom - M.gutterY * (rows - 1);
-  const cellW = innerW / cols;
-  const cellH = innerH / rows;
-
-  const labelBandH = mobile ? 4.5 : 5.5;
-  const photoBandPadTop = mobile ? 1 : 1.5;
-
-  const items = [];
+  const metaColHeights = Array(sectionCols).fill(topPad);
+  const items  = new Array(photos.length);
   const labels = [];
 
-  collectionOrder.forEach((colId, ci) => {
-    const col = window.COLLECTIONS.find(c => c.id === colId);
+  for (const colId of collectionOrder) {
+    const cPhotos = byCollection[colId] || [];
+    if (!cPhotos.length) continue;
+    const col  = window.COLLECTIONS.find(c => c.id === colId);
     const name = col ? col.name : colId;
-    const cPhotos = shuffle(byCollection[colId] || [], makeRng(seed + ci + 1));
+    const rng  = makeRng(seed + collectionOrder.indexOf(colId) + 1);
+    const ordered = shuffle(cPhotos, rng);
 
-    const cellCol = ci % cols;
-    const cellRow = Math.floor(ci / cols);
-    const cellX = M.left + cellCol * (cellW + M.gutterX);
-    const cellY = M.top  + cellRow * (cellH + M.gutterY);
+    const iSection = shortestCol(metaColHeights);
+    const sx = padX + iSection * (sectionW + gapX);
+    let sy   = metaColHeights[iSection];
 
-    labels.push({ id: colId, name, x: cellX, y: cellY, align: 'left' });
+    labels.push({ id: colId, name, x: sx, y: sy, align: 'left' });
+    sy += labelH;
 
-    const areaX = cellX;
-    const areaY = cellY + labelBandH + photoBandPadTop;
-    const areaW = cellW;
-    const areaH = cellH - labelBandH - photoBandPadTop;
-
-    // Pick a fixed tile height that lets us fit ~packRows rows.
-    // Desktop: try 2 rows; mobile: 2 rows too (since column is wider).
-    const packRows = mobile ? 3 : 2;
-    const gap = mobile ? 1.2 : 1.0;
-    const tileH = (areaH - gap * (packRows - 1)) / packRows;
-    // For each photo, its tileW at this tileH is:
-    //   tileW% = tileH% * ratio / stageAspect
-    // Sum tileW across a row; break when > areaW.
-    const rowsPacked = [];
-    let curRow = [];
-    let curWidth = 0;
-    for (const p of cPhotos) {
-      const tileW = (tileH * p.ratio) / stageAspect;
-      const addWidth = (curRow.length === 0 ? tileW : tileW + gap);
-      if (curWidth + addWidth > areaW && curRow.length > 0) {
-        rowsPacked.push(curRow);
-        curRow = [];
-        curWidth = 0;
-      }
-      const tw = (tileH * p.ratio) / stageAspect;
-      curRow.push({ photo: p, w: tw, h: tileH });
-      curWidth += (curRow.length === 1 ? tw : tw + gap);
-    }
-    if (curRow.length > 0) rowsPacked.push(curRow);
-
-    // If we packed more rows than packRows, scale down tile height to compress.
-    // (Rare with our defaults, but defensive.)
-    const extraRows = rowsPacked.length - packRows;
-    let scale = 1;
-    if (extraRows > 0) {
-      // Target: fit rowsPacked.length into areaH.
-      const idealH = (areaH - gap * (rowsPacked.length - 1)) / rowsPacked.length;
-      scale = idealH / tileH;
+    const innerHeights = Array(innerCols).fill(0);
+    for (const p of ordered) {
+      const iInner = shortestCol(innerHeights);
+      const tW = tileW;
+      const tH = tW / p.ratio;
+      const x = sx + iInner * (tileW + innerGap);
+      const y = sy + innerHeights[iInner];
+      items[p.index] = { x, y, w: tW, h: tH, rot: 0 };
+      innerHeights[iInner] += tH + innerGap;
     }
 
-    // Place each row, centered horizontally within the cell.
-    const finalTileH = tileH * scale;
-    const totalRowsH = finalTileH * rowsPacked.length + gap * (rowsPacked.length - 1);
-    const rowYStart = areaY + Math.max(0, (areaH - totalRowsH) / 2);
-
-    rowsPacked.forEach((row, ri) => {
-      const rowWidth = row.reduce((s, t, idx) => s + t.w * scale + (idx > 0 ? gap : 0), 0);
-      let xCursor = areaX + (areaW - rowWidth) / 2;
-      const yRow = rowYStart + ri * (finalTileH + gap);
-      for (const tile of row) {
-        const w = tile.w * scale;
-        const h = finalTileH;
-        items.push({
-          x: xCursor,
-          y: yRow,
-          w, h,
-          rot: 0,
-          cluster: colId,
-          _photo: tile.photo,
-        });
-        xCursor += w + gap;
-      }
-    });
-  });
-
-  // Reindex by original photo index so app consumes a parallel array.
-  const byPhotoIndex = new Array(photos.length);
-  for (const it of items) {
-    byPhotoIndex[it._photo.index] = it;
-    delete it._photo;
+    const sectionContentH = Math.max(...innerHeights);
+    metaColHeights[iSection] = sy + sectionContentH + sectionGap;
   }
-  return { items: byPhotoIndex, labels };
+
+  const stageH = Math.max(vh, Math.max(...metaColHeights) + bottomPad);
+  return { items, labels, stageH };
 }
 
 window.Layouts = { scatteredLayout, groupedLayout, makeRng };
