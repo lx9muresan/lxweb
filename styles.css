@@ -1,0 +1,369 @@
+/* lxmuresan — minimal photography portfolio */
+:root {
+  --bg: #f5f2ec;              /* light off-white, warm */
+  --fg: #111111;              /* near-black */
+  --fg-soft: #666;
+  --accent: #111111;          /* pure black accent per user preference */
+  --bold: 700;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ---------- NAV ---------- */
+.nav {
+  position: absolute;
+  top: 32px;
+  left: 40px;
+  right: 40px;
+  display: flex;
+  align-items: baseline;
+  gap: 28px;
+  z-index: 100;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+}
+.nav-item {
+  color: var(--fg-soft);
+  transition: color 200ms ease;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0;
+  padding: 2px 0;
+  position: relative;
+}
+.nav-item:hover { color: var(--fg); }
+.nav-item.active { color: var(--fg); }
+
+.nav-brand {
+  font-weight: var(--bold);
+  font-size: 16px;
+  margin-right: 12px;
+}
+.nav-brand.active { color: var(--accent); }
+.nav-item.active:not(.nav-brand) {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* ---------- STAGE ---------- */
+.stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+}
+
+/* ---------- BIO PANEL (home) ---------- */
+.about-panel {
+  position: absolute;
+  top: 90px;
+  left: 40px;
+  max-width: 300px;
+  z-index: 50;
+  font-size: 14px;
+  color: var(--fg-soft);
+  line-height: 1.55;
+  pointer-events: none;
+}
+.about-panel p { margin: 0; }
+
+/* ---------- ABOUT PAGE ---------- */
+.about-page {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 540px;
+  padding: 0 40px;
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--fg);
+  text-wrap: pretty;
+}
+.about-page p { margin: 0; }
+
+/* ---------- EMPTY STATE ---------- */
+.empty-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: var(--fg-soft);
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 440px;
+  padding: 0 24px;
+}
+.empty-state p { margin: 0 0 6px; }
+.empty-state code {
+  background: rgba(0,0,0,0.05);
+  padding: 1px 6px;
+  border-radius: 2px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+}
+.empty-hint { font-size: 13px; }
+
+/* ---------- PHOTO TILES ---------- */
+.tile {
+  transition: transform 600ms cubic-bezier(.2,.8,.2,1), z-index 0s;
+  will-change: transform, left, top;
+}
+.tile:hover {
+  z-index: 999 !important;
+}
+.tile-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 380ms cubic-bezier(.2,.8,.2,1), box-shadow 380ms ease;
+  transform-origin: center;
+}
+.tile:hover .tile-inner {
+  transform: scale(1.05) rotate(-1deg);
+  box-shadow: 0 18px 48px rgba(20, 15, 10, 0.2), 0 4px 12px rgba(20, 15, 10, 0.1);
+}
+/* Disable hover tilt on touch devices — only active tap feedback */
+@media (hover: none) {
+  .tile:hover .tile-inner { transform: none; box-shadow: none; }
+  .tile:active .tile-inner {
+    transform: scale(0.98);
+    box-shadow: 0 6px 16px rgba(20,15,10,0.15);
+    transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+}
+
+/* ---------- MOBILE ---------- */
+@media (max-width: 720px), (orientation: portrait) {
+  .nav {
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    gap: 18px;
+    font-size: 14px;
+  }
+  .nav-item { font-size: 14px; }
+  .nav-brand { font-size: 15px; margin-right: 4px; }
+
+  .about-panel {
+    top: 56px;
+    left: 20px;
+    right: 20px;
+    max-width: none;
+    font-size: 13px;
+  }
+  .about-page {
+    padding: 0 24px;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  .carousel-stage { padding: 60px 16px; }
+  .carousel-close { top: 20px; right: 20px; }
+  .carousel-counter { bottom: 20px; font-size: 11px; }
+
+  .tweaks-panel {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    min-width: 0;
+  }
+
+  .cluster-label {
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+.tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+  transition: opacity 500ms ease;
+  background: #e5e1d8;
+}
+.tile-skeleton {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg,
+    rgba(0,0,0,0.03) 0%,
+    rgba(0,0,0,0.07) 50%,
+    rgba(0,0,0,0.03) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s linear infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ---------- CLUSTER LABELS (collections) ---------- */
+.cluster-label {
+  font-size: 13px;
+  color: var(--fg);
+  letter-spacing: 0.02em;
+  font-weight: var(--bold);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1000;
+  background: var(--bg);
+  padding: 2px 0;
+}
+
+/* ---------- CAROUSEL ---------- */
+.carousel {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 200ms ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.carousel-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 80px;
+}
+.carousel-stage img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+  transition: opacity 300ms ease;
+  box-shadow: 0 20px 60px rgba(20, 15, 10, 0.08);
+}
+.carousel-skeleton {
+  position: absolute;
+  width: 60%;
+  height: 60%;
+  background: rgba(0,0,0,0.04);
+  animation: shimmer 1.8s linear infinite;
+}
+.edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  background: transparent;
+  cursor: w-resize;
+}
+.edge-left  { left: 0; cursor: w-resize; }
+.edge-right { right: 0; cursor: e-resize; }
+.edge:hover {
+  background: linear-gradient(to right,
+    rgba(0,0,0,0.02), transparent 40%);
+}
+.edge-right:hover {
+  background: linear-gradient(to left,
+    rgba(0,0,0,0.02), transparent 40%);
+}
+.carousel-close {
+  position: absolute;
+  top: 32px;
+  right: 40px;
+  font-size: 14px;
+  color: var(--fg);
+  letter-spacing: 0.02em;
+  z-index: 10;
+}
+.carousel-close:hover { color: var(--accent); }
+.carousel-counter {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: var(--fg-soft);
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* ---------- TWEAKS PANEL ---------- */
+.tweaks-panel {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.08);
+  padding: 14px 16px;
+  z-index: 1500;
+  font-size: 13px;
+  min-width: 180px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+.tweaks-title {
+  font-weight: var(--bold);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  color: var(--fg);
+}
+.tweaks-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+}
+.tweaks-label {
+  color: var(--fg-soft);
+}
+.tweaks-btn {
+  font-size: 13px;
+  color: var(--fg);
+  border: 1px solid rgba(0,0,0,0.15);
+  padding: 4px 10px;
+  transition: background 150ms ease, color 150ms ease;
+}
+.tweaks-btn:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+.tweaks-value {
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}

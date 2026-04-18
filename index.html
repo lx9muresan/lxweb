@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>lxmuresan</title>
+  <meta name="description" content="photography by lx" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23111'/%3E%3C/svg%3E" />
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root">
+    <noscript style="padding: 40px; display: block; font-family: Helvetica, sans-serif;">
+      this site needs javascript enabled.
+    </noscript>
+  </div>
+
+  <!-- Data loader: fetches photos.json, normalizes, exposes window.PHOTOS + window.COLLECTIONS -->
+  <script>
+  (async function loadData() {
+    try {
+      const res = await fetch('photos.json', { cache: 'no-cache' });
+      if (!res.ok) throw new Error('photos.json fetch failed: ' + res.status);
+      const data = await res.json();
+
+      window.COLLECTIONS = (data.collections || []).map(c => ({ id: c.id, name: c.name }));
+
+      const PHOTOS = [];
+      let idx = 0;
+      for (const col of (data.collections || [])) {
+        for (const p of (col.photos || [])) {
+          // Every photo is treated as portrait (3:4) in the layout — match your
+          // upload aspect ratio if you want exact fidelity.
+          PHOTOS.push({
+            id: p.id || `${col.id}-${idx}`,
+            index: idx++,
+            collection: col.id,
+            ratio: (typeof p.ratio === 'number' && p.ratio > 0) ? p.ratio : 3 / 4,
+            src: p.src,
+            thumb: p.thumb,
+            alt: p.alt || '',
+          });
+        }
+      }
+      window.PHOTOS = PHOTOS;
+
+      // Signal the app that data is ready.
+      window.__dataReady = true;
+      window.dispatchEvent(new Event('data-ready'));
+    } catch (err) {
+      console.error(err);
+      document.getElementById('root').innerHTML =
+        '<div style="padding:40px;font-family:Helvetica,sans-serif;color:#666">Could not load photos.json. Run <code>node build.mjs</code> to generate it.</div>';
+    }
+  })();
+  </script>
+
+  <script src="layouts.js"></script>
+
+  <!-- App. Waits for data-ready before mounting. -->
+  <script type="text/babel" data-presets="react" src="app.jsx"></script>
+</body>
+</html>

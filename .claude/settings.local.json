@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh auth *)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git -c user.email=\"alexandru.muresan99@gmail.com\" -c user.name=\"lxmuresan\" commit -m \"Initial commit\" -q)",
+      "Bash(git branch *)",
+      "Bash(gh repo *)",
+      "Bash(git config *)",
+      "Bash(git push *)",
+      "Bash(git update-ref *)",
+      "Bash(git rm *)",
+      "Bash(git -c user.email=\"alexandru.muresan99@gmail.com\" -c user.name=\"lxmuresan\" commit -m \"Initial commit: site scaffolding\" -q)"
+    ]
+  }
+}

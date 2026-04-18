@@ -1,0 +1,15 @@
+{
+  "name": "lxmuresan-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "lxmuresan photography portfolio — static site",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs && npx serve .",
+    "serve": "npx serve ."
+  },
+  "dependencies": {
+    "sharp": "^0.33.5"
+  }
+}
