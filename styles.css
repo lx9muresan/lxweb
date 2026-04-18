@@ -101,9 +101,9 @@ button {
   position: fixed;
   top: 90px;
   left: 40px;
-  max-width: 220px;
+  max-width: 520px;
   font-size: 14px;
-  line-height: 1.7;
+  line-height: 1.6;
   color: var(--fg-soft);
   text-wrap: pretty;
 }

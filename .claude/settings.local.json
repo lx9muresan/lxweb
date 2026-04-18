@@ -24,7 +24,8 @@
       "Bash(git -c user.email=\"alexandru.muresan99@gmail.com\" -c user.name=\"lxmuresan\" commit -m \"Skip Vercel build and install steps \\(static site\\)\" -q)",
       "Bash(node --input-type=module -e ' *)",
       "Bash(git -c user.email=\"alexandru.muresan99@gmail.com\" -c user.name=\"lxmuresan\" commit -m \"Fix EXIF orientation in ratios, move about to upper left, make nav transparent\" -q)",
-      "Bash(git -c user.email=\"alexandru.muresan99@gmail.com\" -c user.name=\"lxmuresan\" commit -m \"Solid nav text, narrower about column, dim-only hover\" -q)"
+      "Bash(git -c user.email=\"alexandru.muresan99@gmail.com\" -c user.name=\"lxmuresan\" commit -m \"Solid nav text, narrower about column, dim-only hover\" -q)",
+      "Bash(git -c user.email=\"alexandru.muresan99@gmail.com\" -c user.name=\"lxmuresan\" commit -m \"Widen about column for longer lines\" -q)"
     ]
   }
 }
