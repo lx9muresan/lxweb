@@ -122,9 +122,12 @@ async function main() {
       const needsThumb = await isOutdated(thumbOut, srcStat.mtimeMs);
       const needsFull  = await isOutdated(fullOut, srcStat.mtimeMs);
 
-      // Read dimensions once so we know native aspect for the manifest.
-      const meta = await sharp(srcPath).rotate().metadata();
-      const ratio = meta.width / meta.height;
+      // Read dimensions; swap for EXIF-rotated originals so aspect matches the rotated output.
+      const meta = await sharp(srcPath).metadata();
+      const rotated = meta.orientation >= 5 && meta.orientation <= 8;
+      const w = rotated ? meta.height : meta.width;
+      const h = rotated ? meta.width  : meta.height;
+      const ratio = w / h;
 
       if (needsThumb) {
         await sharp(srcPath)
