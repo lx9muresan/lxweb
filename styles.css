@@ -41,8 +41,6 @@ button {
   position: fixed;
   background: transparent;
   padding-bottom: 12px;
-  mix-blend-mode: difference;
-  color: #fff;
   top: 32px;
   left: 40px;
   right: 40px;
@@ -54,9 +52,10 @@ button {
   letter-spacing: 0.01em;
 }
 .nav-item {
-  color: var(--fg-soft);
+  color: var(--fg);
   transition: color 200ms ease;
-  font-weight: 400;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(245, 242, 236, 0.8);
   font-size: 15px;
   letter-spacing: 0;
   padding: 2px 0;
@@ -102,9 +101,9 @@ button {
   position: fixed;
   top: 90px;
   left: 40px;
-  max-width: 300px;
+  max-width: 220px;
   font-size: 14px;
-  line-height: 1.55;
+  line-height: 1.7;
   color: var(--fg-soft);
   text-wrap: pretty;
 }
@@ -145,20 +144,16 @@ button {
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 380ms cubic-bezier(.2,.8,.2,1), box-shadow 380ms ease;
-  transform-origin: center;
+  transition: filter 300ms ease;
 }
 .tile:hover .tile-inner {
-  transform: scale(1.05) rotate(-1deg);
-  box-shadow: 0 18px 48px rgba(20, 15, 10, 0.2), 0 4px 12px rgba(20, 15, 10, 0.1);
+  filter: brightness(0.8);
 }
-/* Disable hover tilt on touch devices — only active tap feedback */
 @media (hover: none) {
-  .tile:hover .tile-inner { transform: none; box-shadow: none; }
+  .tile:hover .tile-inner { filter: none; }
   .tile:active .tile-inner {
-    transform: scale(0.98);
-    box-shadow: 0 6px 16px rgba(20,15,10,0.15);
-    transition: transform 120ms ease, box-shadow 120ms ease;
+    filter: brightness(0.85);
+    transition: filter 120ms ease;
   }
 }
 
