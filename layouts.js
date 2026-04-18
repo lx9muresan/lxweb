@@ -36,7 +36,7 @@ function scatteredLayout(photos, seed, opts = {}) {
   const mobile = vw < 720;
   const rng = makeRng(seed);
 
-  const cols = mobile ? 2 : 3;
+  const cols = mobile ? 2 : 4;
   const padX = mobile ? 16 : 40;
   const gap  = mobile ? 10 : 24;
   const topPad    = mobile ? 120 : 180;

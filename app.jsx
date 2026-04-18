@@ -179,7 +179,7 @@ function TweaksPanel({ visible, onRandomize, seed }) {
 // =====================================================
 // Main App
 // =====================================================
-const BIO = "hi, I'm lx. i'm that kind of person who is reluctant to share their work with the world for some reason. this is a space I created for my photography to exist online. this will probably evolve and change over time. take some time to explore, i hope you enjoy <3";
+const BIO = "Hi, I'm lx. I spend part of my time researching how tech influences us humans and trying to help people in companies understand that. Another part of my time is spent taking pictures. I built this website to give them a home. Take some time to explore. I hope you enjoy <3";
 
 function App() {
   const [view, setView] = useState('home'); // 'home' | 'collections' | 'about'
@@ -289,6 +289,14 @@ function App() {
         >
           about
         </button>
+        <a
+          className="nav-item"
+          href="https://www.instagram.com/lxmuresan/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          ig
+        </a>
       </nav>
 
       {/* Stage */}
@@ -302,9 +310,6 @@ function App() {
         }}
       >
         {/* Home bio blurb — short teaser (desktop only; mobile gets it on about page) */}
-        {displayView === 'home' && !isMobile && (
-          <AboutPanel bio={"photography, collected slowly."} />
-        )}
 
         {/* Empty state — no photos yet */}
         {!isAbout && isEmpty && (
