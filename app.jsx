@@ -183,7 +183,7 @@ const BIO = "hi, I'm lx. i'm that kind of person who is reluctant to share their
 
 function App() {
   const [view, setView] = useState('home'); // 'home' | 'collections' | 'about'
-  const [seed, setSeed] = useState(TWEAK_DEFAULTS.layoutSeed);
+  const [seed, setSeed] = useState(() => Math.floor(Math.random() * 9999) + 1);
   const [carouselIdx, setCarouselIdx] = useState(null);
   const [tweaksVisible, setTweaksVisible] = useState(false);
   const [fading, setFading] = useState(false);
